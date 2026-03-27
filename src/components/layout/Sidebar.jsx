@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, FileText, GitBranch, Inbox, BarChart3,
-  FileEdit, LinkIcon, Settings, CreditCard, LogOut, ChevronLeft, Menu
+  FileEdit, LinkIcon, Settings, CreditCard, LogOut, ChevronLeft, Menu,
+  Search, Bell, ShieldCheck
 } from "lucide-react";
 import { getInitials } from "@/utils/formatters";
 import { useState } from "react";
@@ -15,8 +16,11 @@ const navItems = [
   { label: "Analytics", icon: BarChart3, path: "/analytics" },
   { label: "Templates", icon: FileEdit, path: "/templates" },
   { label: "Payment Links", icon: LinkIcon, path: "/payment-links" },
-  { label: "Settings", icon: Settings, path: "/settings" },
-  { label: "Billing", icon: CreditCard, path: "/billing" },
+  { label: "Search",     icon: Search,      path: "/search" },
+  { label: "Alerts",     icon: Bell,        path: "/alerts" },
+  { label: "Compliance", icon: ShieldCheck, path: "/compliance" },
+  { label: "Settings",   icon: Settings,    path: "/settings" },
+  { label: "Billing",    icon: CreditCard,  path: "/billing" },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {

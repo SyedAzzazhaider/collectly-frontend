@@ -37,6 +37,9 @@ import PaymentLinks         from './pages/PaymentLinks';
 import Settings             from './pages/Settings';
 import Billing              from './pages/Billing';
 import AdminDashboard       from './pages/AdminDashboard';
+import Search     from './pages/Search';
+import Alerts     from './pages/Alerts';
+import Compliance from './pages/Compliance';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,6 +97,9 @@ function AppRoutes() {
       <Route path="/settings"         element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/billing"          element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       <Route path="/admin"            element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/search"     element={<ProtectedRoute><Search /></ProtectedRoute>} />
+<Route path="/alerts"     element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+<Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
 
       <Route path="*"                 element={<NotFound />} />
     </Routes>
