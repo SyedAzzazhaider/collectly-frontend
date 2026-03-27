@@ -40,10 +40,16 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // ── Signup ─────────────────────────────────────────────────────────────
-  signup: async ({ name, email, password }) => {
+  signup: async ({ name, email, password, confirmPassword }) => {
     set({ isLoading: true, error: null });
     try {
-      const res   = await axiosInstance.post('/auth/signup', { name, email, password });
+      const res   = await axiosInstance.post('/auth/signup', {
+        name,
+        email,
+        password,
+        confirmPassword: confirmPassword || password,
+        tosAccepted: true,
+      });
       const data  = res.data?.data;
       setAccessToken(data.accessToken);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
