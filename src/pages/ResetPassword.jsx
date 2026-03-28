@@ -31,7 +31,7 @@ export default function ResetPassword() {
     if (form.password.length < 8)   return setLocalErr('Password must be at least 8 characters.');
     if (form.password !== form.confirm) return setLocalErr('Passwords do not match.');
 
-    const result = await resetPassword({ token, newPassword: form.password });
+    const result = await resetPassword({ token, newPassword: form.password, confirmPassword: form.confirm });
     if (result.success) {
       setSuccess(true);
       setTimeout(() => navigate('/dashboard', { replace: true }), 2000);

@@ -144,8 +144,8 @@ export const useAuthStore = create((set, get) => ({
   resetPassword: async ({ token, newPassword }) => {
     set({ isLoading: true, error: null });
     try {
-      const res       = await axiosInstance.post(`/auth/reset-password/${token}`, { newPassword });
-      const accessToken = res.data?.data?.accessToken;
+       const res = await axiosInstance.post(`/auth/reset-password/${token}`, { newPassword, confirmPassword: newPassword });
+        const accessToken = res.data?.data?.accessToken;
       if (accessToken) setAccessToken(accessToken);
       set({ isLoading: false });
       return { success: true };
