@@ -1,9 +1,19 @@
 import { Bell, Search, Menu } from "lucide-react";
 import { getInitials } from "@/utils/formatters";
 import { useLayout } from "./AppLayout";
+import { useAuthStore } from '@/store/AuthStore';
+import { useEffect, useState } from 'react';
 
 export default function Header({ title, subtitle, children }) {
   const { setMobileOpen, setCollapsed } = useLayout();
+  const { user } = useAuthStore();
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    if (user) {
+      setUserName(user.name || user.email?.split('@')[0] || "User");
+    }
+  }, [user]);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card/95 px-6 py-4">
@@ -30,7 +40,7 @@ export default function Header({ title, subtitle, children }) {
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
         </button>
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-          {getInitials("Alex Morgan")}
+          {getInitials(userName)}
         </div>
       </div>
     </header>

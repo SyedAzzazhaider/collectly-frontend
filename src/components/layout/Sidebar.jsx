@@ -1,11 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, FileText, GitBranch, Inbox, BarChart3,
   FileEdit, LinkIcon, Settings, CreditCard, LogOut, ChevronLeft, Menu,
   Search, Bell, ShieldCheck
 } from "lucide-react";
 import { getInitials } from "@/utils/formatters";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/AuthStore";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -25,6 +26,17 @@ const navItems = [
 
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
+  const [userName, setUserName] = useState("User");
+  const [userRole, setUserRole] = useState("Member");
+
+  useEffect(() => {
+    if (user) {
+      setUserName(user.name || user.email?.split('@')[0] || "User");
+      setUserRole(user.role || "Member");
+    }
+  }, [user]);
 
   return (
     <>
@@ -93,18 +105,25 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         <div className="border-t border-sidebar-border p-3">
           <div className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${collapsed ? "justify-center" : ""}`}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-              {getInitials("Alex Morgan")}
+              {getInitials(userName)}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Alex Morgan</p>
-                <p className="text-xs text-sidebar-muted truncate">Admin</p>
+                <p className="text-sm font-medium truncate">{userName}</p>
+                <p className="text-xs text-sidebar-muted truncate capitalize">{userRole}</p>
               </div>
             )}
             {!collapsed && (
-              <Link to="/" className="text-sidebar-muted hover:text-sidebar-foreground transition-colors">
+              <button 
+                onClick={async () => {
+                  await useAuthStore.getState().logout();
+                  navigate('/login');
+                }}
+                className="text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+                aria-label="Logout"
+              >
                 <LogOut className="h-4 w-4" />
-              </Link>
+              </button>
             )}
           </div>
         </div>
