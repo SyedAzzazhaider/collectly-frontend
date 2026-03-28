@@ -42,21 +42,21 @@ export default function Billing() {
         {/* Current Plan */}
         <div className="rounded-xl border border-primary/20 bg-accent p-6">
           {loadingBilling ? (
-            <p className="text-sm text-muted-foreground">Loading subscription…</p>
+            <p className="text-sm text-muted-foreground">Loading subscriptionï¿½</p>
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-primary">Current Plan</p>
-                <h2 className="text-2xl font-bold mt-1 capitalize">{billing?.subscription?.planName ?? billing?.planName ?? "—"}</h2>
+                <h2 className="text-2xl font-bold mt-1 capitalize">{billing?.subscription?.planName ?? billing?.planName ?? "ï¿½"}</h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   {billing?.subscription?.status === "active" ? "Active subscription" : billing?.subscription?.status ?? ""}
-                  {billing?.subscription?.currentPeriodEnd ? ` · Renews ${formatDate(billing.subscription.currentPeriodEnd)}` : ""}
+                  {billing?.subscription?.currentPeriodEnd ? ` ï¿½ Renews ${formatDate(billing.subscription.currentPeriodEnd)}` : ""}
                 </p>
               </div>
               {limitCount > 0 && (
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Reminders used this month</p>
-                  <p className="text-lg font-bold mt-1">{loadingUsage ? "…" : usedCount.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ {limitCount.toLocaleString()}</span></p>
+                  <p className="text-lg font-bold mt-1">{loadingUsage ? "ï¿½" : usedCount.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ {limitCount.toLocaleString()}</span></p>
                   <div className="mt-2 h-2 w-48 rounded-full bg-border overflow-hidden">
                     <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${usagePct}%` }} />
                   </div>
@@ -70,14 +70,14 @@ export default function Billing() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h3 className="font-semibold mb-4">Payment Method</h3>
           {loadingBilling ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <p className="text-sm text-muted-foreground">Loadingï¿½</p>
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-muted p-2.5"><CreditCard className="h-5 w-5 text-muted-foreground" /></div>
                 <div>
                   <p className="text-sm font-medium">
-                    {billing?.paymentMethod?.last4 ? `•••• •••• •••• ${billing.paymentMethod.last4}` : "No card on file"}
+                    {billing?.paymentMethod?.last4 ? `ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ${billing.paymentMethod.last4}` : "No card on file"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {billing?.paymentMethod?.expMonth ? `Expires ${billing.paymentMethod.expMonth}/${billing.paymentMethod.expYear}` : ""}
@@ -93,11 +93,13 @@ export default function Billing() {
         <div>
           <h3 className="font-semibold mb-4">Change Plan</h3>
           {loadingPlans ? (
-            <p className="text-sm text-muted-foreground">Loading plans…</p>
+            <p className="text-sm text-muted-foreground">Loading plansï¿½</p>
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
               {plans.map(plan => {
-                const isCurrent = plan._id === currentPlanId || plan.name?.toLowerCase() === currentPlanId?.toLowerCase();
+                const isCurrent = currentPlanId
+                ? (plan.id === currentPlanId || plan.name?.toLowerCase() === currentPlanId?.toLowerCase())
+                : false;
                 return (
                   <div key={plan._id ?? plan.name} className={`rounded-xl border p-6 ${isCurrent ? "border-primary bg-accent" : "border-border bg-card"}`}>
                     <h4 className="font-semibold capitalize">{plan.name}</h4>
@@ -135,7 +137,7 @@ export default function Billing() {
             </tr></thead>
             <tbody>
               {loadingHistory ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-sm text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-sm text-muted-foreground">Loadingï¿½</td></tr>
               ) : invoices.length === 0 ? (
                 <tr><td colSpan={4} className="px-6 py-8 text-center text-sm text-muted-foreground">No billing history yet</td></tr>
               ) : invoices.map(b => (
@@ -149,7 +151,7 @@ export default function Billing() {
                         <Download className="h-3.5 w-3.5" /> PDF
                       </a>
                     ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-xs text-muted-foreground">ï¿½</span>
                     )}
                   </td>
                 </tr>

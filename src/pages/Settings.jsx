@@ -34,16 +34,17 @@ export default function Settings() {
     if (me) setProfile({ name: me.name ?? "", email: me.email ?? "", phone: me.phone ?? "" });
   }, [me]);
 
-  const saveProfile = useMutation({
-    mutationFn: () => axiosInstance.patch("/auth/me", { name: profile.name, phone: profile.phone }),
-    onSuccess: () => { toast.success("Profile updated"); refreshUser(); qc.invalidateQueries({ queryKey: ["me"] }); },
-    onError:   (e) => toast.error(e.response?.data?.message ?? "Update failed"),
+  const resendVerification = useMutation({
+    mutationFn: () => axiosInstance.post("/auth/resend-verification"),
+    onSuccess: () => toast.success("Verification email sent â€” check your inbox"),
+    onError:   (e) => toast.error(e.response?.data?.message ?? "Failed to send email"),
   });
 
   const changePassword = useMutation({
     mutationFn: () => axiosInstance.patch("/auth/password", {
-      currentPassword: passwords.current,
-      newPassword:     passwords.newPass,
+      currentPassword:  passwords.current,
+      newPassword:      passwords.newPass,
+      confirmPassword:  passwords.confirm,
     }),
     onSuccess: () => { toast.success("Password changed"); setPasswords({ current: "", newPass: "", confirm: "" }); },
     onError:   (e) => toast.error(e.response?.data?.message ?? "Password change failed"),
@@ -76,14 +77,14 @@ export default function Settings() {
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary text-2xl font-bold">
-                  {isLoading ? "…" : (me?.name?.[0] ?? "?").toUpperCase()}
+                  {isLoading ? "â€¦" : (me?.name?.[0] ?? "?").toUpperCase()}
                 </div>
                 <button className="absolute bottom-0 right-0 rounded-full bg-primary p-1.5 text-primary-foreground shadow-sm">
                   <Camera className="h-3.5 w-3.5" />
                 </button>
               </div>
               <div>
-                <h3 className="font-semibold">{isLoading ? "Loading…" : me?.name}</h3>
+                <h3 className="font-semibold">{isLoading ? "Loadingâ€¦" : me?.name}</h3>
                 <p className="text-sm text-muted-foreground">{me?.email}</p>
                 <span className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5 mt-1 inline-block capitalize">{me?.role}</span>
               </div>
@@ -92,8 +93,8 @@ export default function Settings() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1.5">Full Name</label>
-                <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))}
-                  className="w-full rounded-lg border border-input bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                <input value={profile.name} disabled
+                  className="w-full rounded-lg border border-input bg-muted px-4 py-2.5 text-sm text-muted-foreground cursor-not-allowed" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Email</label>
@@ -102,26 +103,30 @@ export default function Settings() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Phone</label>
-                <input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))}
+                <input value={profile.phone} disabled
                   placeholder="+1 (555) 000-0000"
-                  className="w-full rounded-lg border border-input bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                  className="w-full rounded-lg border border-input bg-muted px-4 py-2.5 text-sm text-muted-foreground cursor-not-allowed" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Email Verified</label>
                 <div className="flex items-center gap-2 mt-2">
                   {me?.isEmailVerified
                     ? <><CheckCircle2 className="h-4 w-4 text-green-500" /><span className="text-sm text-green-600">Verified</span></>
-                    : <span className="text-sm text-yellow-600">Not verified — check your inbox</span>}
+                    : <span className="text-sm text-yellow-600">Not verified â€” check your inbox</span>}
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={() => saveProfile.mutate()}
-              disabled={saveProfile.isPending || !profile.name.trim()}
-              className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50">
-              {saveProfile.isPending ? "Saving…" : "Save Changes"}
-            </button>
+            {!me?.isEmailVerified && (
+              <button
+                onClick={() => resendVerification.mutate()}
+                disabled={resendVerification.isPending}
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                {resendVerification.isPending ? "Sendingâ€¦" : "Resend Verification Email"}
+              </button>
+            )}
+            <p className="text-xs text-muted-foreground">Profile name and phone are managed by your account administrator.</p>
           </div>
         )}
 
@@ -163,7 +168,7 @@ export default function Settings() {
               </div>
               <button onClick={() => changePassword.mutate()} disabled={!pwValid || changePassword.isPending}
                 className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 shadow-sm disabled:opacity-50">
-                {changePassword.isPending ? "Changing…" : "Change Password"}
+                {changePassword.isPending ? "Changingâ€¦" : "Change Password"}
               </button>
             </div>
 
