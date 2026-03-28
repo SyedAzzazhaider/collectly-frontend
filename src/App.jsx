@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore }  from "./store/AuthStore";
 import ProtectedRoute    from "./components/auth/ProtectedRoute";
 
-// Pages — Public
+// Pages ï¿½ Public
 import Landing           from "./pages/Landing";
 import Login             from "./pages/Login";
 import Signup            from "./pages/Signup";
@@ -22,7 +22,7 @@ import PaymentSuccess    from "./pages/PaymentSuccess";
 import PaymentFailure    from "./pages/PaymentFailure";
 import NotFound          from "./pages/NotFound";
 
-// Pages — Protected
+// Pages ï¿½ Protected
 import Dashboard         from "./pages/Dashboard";
 import Customers         from "./pages/Customers";
 import CustomerDetail    from "./pages/CustomerDetail";
@@ -50,7 +50,10 @@ function AppRoutes() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
 
   useEffect(() => {
-    checkAuth();
+    const { isAuthenticated } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      checkAuth();
+    }
   }, [checkAuth]);
 
   return (
@@ -61,23 +64,23 @@ function AppRoutes() {
       <Route path="/signup"                       element={<Signup />} />
       <Route path="/2fa-verify"                   element={<TwoFactorVerify />} />
 
-      {/* Email verification — both formats backend may send */}
+      {/* Email verification ï¿½ both formats backend may send */}
       <Route path="/auth/verify-email/:token"     element={<VerifyEmail />} />
       <Route path="/verify-email"                 element={<VerifyEmail />} />
 
-      {/* Password reset — both formats backend may send */}
+      {/* Password reset ï¿½ both formats backend may send */}
       <Route path="/auth/reset-password/:token"   element={<ResetPassword />} />
       <Route path="/reset-password/:token"        element={<ResetPassword />} />
       <Route path="/reset-password"               element={<ResetPassword />} />
 
-      {/* Google OAuth callback — backend redirects here after auth */}
+      {/* Google OAuth callback ï¿½ backend redirects here after auth */}
       <Route path="/auth/oauth/callback"          element={<OAuthCallback />} />
 
-      {/* Backend error redirect aliases — backend sends /auth/login on failure */}
+      {/* Backend error redirect aliases ï¿½ backend sends /auth/login on failure */}
       <Route path="/auth/login"                   element={<Navigate to="/login"  replace />} />
       <Route path="/auth/signup"                  element={<Navigate to="/signup" replace />} />
 
-      {/* Payment portal — public */}
+      {/* Payment portal ï¿½ public */}
       <Route path="/pay"                          element={<PaymentPortal />} />
       <Route path="/payment-success"              element={<PaymentSuccess />} />
       <Route path="/payment-failure"              element={<PaymentFailure />} />

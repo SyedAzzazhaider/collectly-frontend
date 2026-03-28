@@ -38,10 +38,8 @@ export default function OAuthCallback() {
           error:           null,
         });
 
-        // 4. Small tick to let Zustand state propagate before navigation
-        setTimeout(() => {
-          navigate("/dashboard", { replace: true });
-        }, 100);
+        // 4. Hard redirect — bypasses checkAuth race condition entirely
+        window.location.replace("/dashboard");
 
       } catch (err) {
         console.error("OAuth callback error:", err);
