@@ -3,6 +3,7 @@ import { Toaster }             from '@/components/ui/toaster';
 import { Toaster as Sonner }   from '@/components/ui/sonner';
 import { TooltipProvider }     from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import OAuthCallback from './pages/OAuthCallback';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { useAuthStore }     from './store/AuthStore';
@@ -80,6 +81,7 @@ function AppRoutes() {
       <Route path="/pay"                       element={<PaymentPortal />} />
       <Route path="/payment-success"           element={<PaymentSuccess />} />
       <Route path="/payment-failure"           element={<PaymentFailure />} />
+      <Route path="/auth/oauth/callback"       element={<OAuthCallback />} />
 
       {/* ── Protected ───────────────────────────────────────────────── */}
       <Route path="/dashboard"        element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
