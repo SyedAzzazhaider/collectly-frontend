@@ -1,11 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Users, FileText, GitBranch, Inbox, BarChart3,
   FileEdit, LinkIcon, Settings, CreditCard, LogOut, ChevronLeft, Menu,
   Search, Bell, ShieldCheck
 } from "lucide-react";
 import { getInitials } from "@/utils/formatters";
-import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 
 const navItems = [
@@ -27,16 +27,15 @@ const navItems = [
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
-  const [userName, setUserName] = useState("User");
-  const [userRole, setUserRole] = useState("Member");
+  const { user, logout } = useAuthStore();
 
-  useEffect(() => {
-    if (user) {
-      setUserName(user.name || user.email?.split('@')[0] || "User");
-      setUserRole(user.role || "Member");
-    }
-  }, [user]);
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  const displayName = user?.name ?? "User";
+  const displayRole = user?.role ?? "";
 
   return (
     <>
@@ -105,27 +104,33 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         <div className="border-t border-sidebar-border p-3">
           <div className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${collapsed ? "justify-center" : ""}`}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-              {getInitials(userName)}
+              {getInitials(displayName)}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{userName}</p>
-                <p className="text-xs text-sidebar-muted truncate capitalize">{userRole}</p>
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                <p className="text-xs text-sidebar-muted truncate capitalize">{displayRole}</p>
               </div>
             )}
             {!collapsed && (
-              <button 
-                onClick={async () => {
-                  await useAuthStore.getState().logout();
-                  navigate('/login');
-                }}
-                className="text-sidebar-muted hover:text-sidebar-foreground transition-colors"
-                aria-label="Logout"
+              <button
+                onClick={handleLogout}
+                title="Logout"
+                className="text-sidebar-muted hover:text-destructive transition-colors"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             )}
           </div>
+          {collapsed && (
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="mt-2 flex w-full items-center justify-center rounded-lg p-2 text-sidebar-muted hover:text-destructive hover:bg-sidebar-accent transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </aside>
     </>

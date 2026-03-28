@@ -4,7 +4,10 @@ import { StatusBadge } from "@/components/ui/shared";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { ArrowLeft, Send, LinkIcon, CheckCircle2, Mail, Smartphone, MessageSquare } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
 import { useInvoice, useRecordPayment } from "@/hooks/useInvoices";
+import { useMutation } from "@tanstack/react-query";
+import axiosInstance from "@/utils/axiosInstance";
 import { toast } from "sonner";
 
 const channelIcon = { email: Mail, sms: Smartphone, whatsapp: MessageSquare };
@@ -12,7 +15,17 @@ const channelIcon = { email: Mail, sms: Smartphone, whatsapp: MessageSquare };
 export default function InvoiceDetail() {
   const { id } = useParams();
   const { data: invoice, isLoading } = useInvoice(id);
-  const recordPayment = useRecordPayment();
+  const recordPayment  = useRecordPayment();
+  const [sending, setSending] = useState(false);
+
+  const sendReminder = useMutation({
+    mutationFn: () => axiosInstance.post("/notifications/send", {
+      invoiceId: id,
+      channel:   "email",
+    }),
+    onSuccess: () => toast.success("Reminder sent successfully"),
+    onError:   (e) => toast.error(e.response?.data?.message ?? "Failed to send reminder"),
+  });
 
   const handleMarkPaid = () => {
     if (!invoice) return;
@@ -20,7 +33,7 @@ export default function InvoiceDetail() {
       { id: invoice._id, amount: invoice.amount, method: "manual", paidAt: new Date().toISOString() },
       {
         onSuccess: () => toast.success("Invoice marked as paid"),
-        onError:   (err) => toast.error(err.response?.data?.message ?? "Failed to mark as paid"),
+        onError:   (e) => toast.error(e.response?.data?.message ?? "Failed to mark as paid"),
       }
     );
   };
@@ -40,16 +53,16 @@ export default function InvoiceDetail() {
       <AppLayout>
         <main className="p-6">
           <p className="text-sm text-muted-foreground">Invoice not found.</p>
-          <Link to="/invoices" className="text-sm text-primary hover:underline mt-2 inline-block">? Back to Invoices</Link>
+          <Link to="/invoices" className="text-sm text-primary hover:underline mt-2 inline-block">‚Üê Back to Invoices</Link>
         </main>
       </AppLayout>
     );
   }
 
-  const lineItems    = invoice.lineItems ?? [];
-  const timeline     = invoice.notificationHistory ?? [];
-  const totalTax     = invoice.taxAmount ?? 0;
-  const subtotal     = invoice.subtotal ?? invoice.amount;
+  const lineItems = invoice.lineItems ?? [];
+  const timeline  = invoice.notificationHistory ?? [];
+  const subtotal  = invoice.subtotal ?? invoice.amount;
+  const totalTax  = invoice.taxAmount ?? 0;
 
   return (
     <AppLayout>
@@ -65,11 +78,16 @@ export default function InvoiceDetail() {
               <h1 className="text-2xl font-bold">{invoice.invoiceNumber}</h1>
               <StatusBadge status={invoice.status} />
             </div>
-            <p className="text-muted-foreground mt-1">Issued to {invoice.customer?.name ?? "ó"}</p>
+            <p className="text-muted-foreground mt-1">Issued to {invoice.customer?.name ?? "‚Äî"}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <button className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
-              <Send className="h-4 w-4" /> Send Reminder
+            <button
+              onClick={() => sendReminder.mutate()}
+              disabled={sendReminder.isPending || invoice.status === "paid"}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+              {sendReminder.isPending ? "Sending‚Ä¶" : "Send Reminder"}
             </button>
             <Link to="/pay" className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
               <LinkIcon className="h-4 w-4" /> Payment Link
@@ -80,20 +98,20 @@ export default function InvoiceDetail() {
                 disabled={recordPayment.isPending}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 shadow-sm disabled:opacity-50"
               >
-                <CheckCircle2 className="h-4 w-4" /> {recordPayment.isPending ? "SavingÖ" : "Mark as Paid"}
+                <CheckCircle2 className="h-4 w-4" />
+                {recordPayment.isPending ? "Saving‚Ä¶" : "Mark as Paid"}
               </button>
             )}
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Invoice Card */}
           <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-sm">
             <div className="p-6 border-b border-border">
               <div className="grid sm:grid-cols-2 gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Bill To</p>
-                  <p className="font-medium">{invoice.customer?.name ?? "ó"}</p>
+                  <p className="font-medium">{invoice.customer?.name ?? "‚Äî"}</p>
                   <p className="text-sm text-muted-foreground">{invoice.customer?.company ?? ""}</p>
                   <p className="text-sm text-muted-foreground">{invoice.customer?.email ?? ""}</p>
                 </div>
@@ -119,9 +137,9 @@ export default function InvoiceDetail() {
                     {lineItems.map((item, i) => (
                       <tr key={item._id ?? i} className="border-t border-border">
                         <td className="px-6 py-3">{item.description}</td>
-                        <td className="px-6 py-3 text-right text-muted-foreground">{item.quantity ?? item.qty ?? 1}</td>
-                        <td className="px-6 py-3 text-right text-muted-foreground">{formatCurrency(item.unitPrice ?? item.rate ?? 0)}</td>
-                        <td className="px-6 py-3 text-right font-medium">{formatCurrency(item.amount ?? (item.quantity * item.unitPrice) ?? 0)}</td>
+                        <td className="px-6 py-3 text-right text-muted-foreground">{item.quantity ?? 1}</td>
+                        <td className="px-6 py-3 text-right text-muted-foreground">{formatCurrency(item.unitPrice ?? 0)}</td>
+                        <td className="px-6 py-3 text-right font-medium">{formatCurrency(item.amount ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -131,20 +149,16 @@ export default function InvoiceDetail() {
                     <div className="flex gap-8"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
                     {totalTax > 0 && <div className="flex gap-8"><span className="text-muted-foreground">Tax</span><span>{formatCurrency(totalTax)}</span></div>}
                     <div className="flex gap-8 text-lg font-bold mt-2"><span>Total</span><span>{formatCurrency(invoice.amount)}</span></div>
-                    {invoice.paidAmount > 0 && <div className="flex gap-8 text-green-600"><span>Paid</span><span>{formatCurrency(invoice.paidAmount)}</span></div>}
                   </div>
                 </div>
               </>
             ) : (
-              <div className="border-t border-border p-6">
-                <div className="flex flex-col items-end gap-1 text-sm">
-                  <div className="flex gap-8 text-lg font-bold"><span>Total</span><span>{formatCurrency(invoice.amount)}</span></div>
-                </div>
+              <div className="p-6 flex justify-end">
+                <div className="text-lg font-bold">{formatCurrency(invoice.amount)}</div>
               </div>
             )}
           </div>
 
-          {/* Timeline */}
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm h-fit">
             <h3 className="font-semibold mb-4">Payment Timeline</h3>
             {timeline.length === 0 ? (
@@ -162,9 +176,8 @@ export default function InvoiceDetail() {
                         {i < timeline.length - 1 && <div className="w-0.5 flex-1 bg-border mt-1" />}
                       </div>
                       <div className="pb-4">
-                        <p className="text-sm font-medium">{t.action ?? t.content ?? `${t.channel} sent`}</p>
+                        <p className="text-sm font-medium">{t.action ?? `${t.channel} sent`}</p>
                         <p className="text-xs text-muted-foreground">{formatDate(t.sentAt ?? t.createdAt)}</p>
-                        {t.status && <StatusBadge status={t.status} />}
                       </div>
                     </div>
                   );
