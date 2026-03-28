@@ -38,8 +38,10 @@ export default function OAuthCallback() {
           error:           null,
         });
 
-        // 4. Navigate to dashboard
-        navigate("/dashboard", { replace: true });
+        // 4. Small tick to let Zustand state propagate before navigation
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 100);
 
       } catch (err) {
         console.error("OAuth callback error:", err);
@@ -55,7 +57,7 @@ export default function OAuthCallback() {
     <div className="flex min-h-screen items-center justify-center bg-[#0e1127]">
       <div className="flex flex-col items-center gap-4">
         <div className="h-9 w-9 animate-spin rounded-full border-4 border-border border-t-primary" />
-        <p className="text-sm text-gray-400">Completing Google sign in…</p>
+        <p className="text-sm text-gray-400">Completing Google sign inâ€¦</p>
       </div>
     </div>
   );
