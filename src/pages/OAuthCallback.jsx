@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { setAccessToken } from "@/utils/axiosInstance";
 import { useAuthStore } from "@/store/AuthStore";
@@ -7,8 +7,12 @@ import axiosInstance from "@/utils/axiosInstance";
 export default function OAuthCallback() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const ran = useRef(false);
 
   useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+
     const run = async () => {
       const token = params.get("token");
 
@@ -18,18 +22,26 @@ export default function OAuthCallback() {
       }
 
       try {
-        // 1. Store the access token in memory
+        // Set token in memory FIRST
         setAccessToken(token);
 
-        // 2. Fetch the user profile directly
-        const res  = await axiosInstance.get("/auth/me", {
+        // Fetch user with explicit Authorization header
+        const res = await axiosInstance.get("/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const user = res.data?.data?.user;
+        if (!user) throw new Error("No user returned from /auth/me");
 
-        if (!user) throw new Error("No user returned");
+        // Directly mutate Zustand store — no setState batching issues
+        const store = useAuthStore.getState();
+        store.user            = user;
+        store.isAuthenticated = true;
+        store.isInitialized   = true;
+        store.isLoading       = false;
+        store.error           = null;
 
-        // 3. Manually set Zustand store state
+        // Use setState to trigger subscriber re-renders
         useAuthStore.setState({
           user,
           isAuthenticated: true,
@@ -38,12 +50,12 @@ export default function OAuthCallback() {
           error:           null,
         });
 
-        // 4. Hard redirect â€” bypasses checkAuth race condition entirely
-        window.location.replace("/dashboard");
+        // Navigate within React — NO full page reload
+        // This keeps the in-memory access token alive
+        navigate("/dashboard", { replace: true });
 
       } catch (err) {
-        console.error("OAuth callback error:", err);
-        setAccessToken(null);
+        console.error("OAuthCallback error:", err?.response?.data ?? err.message);
         navigate("/login?error=oauth_failed", { replace: true });
       }
     };
@@ -55,7 +67,7 @@ export default function OAuthCallback() {
     <div className="flex min-h-screen items-center justify-center bg-[#0e1127]">
       <div className="flex flex-col items-center gap-4">
         <div className="h-9 w-9 animate-spin rounded-full border-4 border-border border-t-primary" />
-        <p className="text-sm text-gray-400">Completing Google sign inâ€¦</p>
+        <p className="text-sm text-gray-400">Completing Google sign in…</p>
       </div>
     </div>
   );
